@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -27,47 +28,20 @@ namespace ImgurWinform
             pictureBox1.LoadAsync($"https://i.imgur.com/{data.cover}.jpeg");
             Title.Text = data.title;
             Ups.Text = data.ups.ToString();
+            Downs.Text = data.downs.ToString();
             CommentCount.Text = data.comment_count.ToString();
             Views.Text = data.views.ToString();
-
-            voteModel = new VoteDTO(VoteType.veto, VoteType.veto, data.points, data.id);
             
             // 讓點擊任何子控制項都能觸發 ItemClicked
             foreach (Control ctrl in this.Controls)
             {
-                if (ctrl == label2 || ctrl == label3 || ctrl == label4 || ctrl == label5)
+                if (ctrl == Up || ctrl == Down || ctrl == label4 || ctrl == label5)
                     continue;
                 ctrl.Click += (s, e) => ItemClicked?.Invoke(this, e);
             }
             this.Click += (s, e) => ItemClicked?.Invoke(this, e);
-
         }
-           
-        private void ApplyVoteColor(VoteType stage)
-        {
-            var (upColor, downColor) = voteService.GetVoteColor(stage);
-            label2.ForeColor = upColor;
-            label3.ForeColor = downColor;
-        }
-
-        private void Unlike_Click(object sender, EventArgs e)
-        {
-            voteModel.CurrentStage = VoteType.down;
-            var (newStage, newPoint) = voteService.SetVotePoint(voteModel);
-
-            Ups.Text = newPoint.ToString();
-            ApplyVoteColor(newStage);
-        }
-
-        private void Like_Click(object sender, EventArgs e)
-        {
-            voteModel.CurrentStage = VoteType.up;
-            var (newStage, newPoint) = voteService.SetVotePoint(voteModel);
-
-            Ups.Text = newPoint.ToString();
-            ApplyVoteColor(newStage);
-        }
-
+          
         private async void Comment_ClickAsync(object sender, EventArgs e)
         {
             CommendService commendService = new CommendService();
@@ -104,6 +78,23 @@ namespace ImgurWinform
             {
                 MessageBox.Show($"載入留言失敗：{ex.Message}");
             }
+        }
+
+        private void vote_Click(object sender, EventArgs e)
+        {
+            Label vote = (Label)sender;
+            Enum.TryParse(this._datum.vote?.ToString(), out VoteType PreviousStage);
+            Enum.TryParse(vote.Tag.ToString(), out VoteType NowStage);
+            VoteDTO VoteDTO = new VoteDTO(PreviousStage, NowStage, _datum.ups, _datum.downs, _datum.id);
+
+            var data = voteService.SetVoteUpDown(VoteDTO);
+            Ups.Text = data.Item2.ToString();
+            Downs.Text = data.Item3.ToString();
+           
+            var getvotecolor = voteService.GetVoteColor(data.Item1);
+            Up.ForeColor = getvotecolor.Item1;
+            Down.ForeColor = getvotecolor.Item2;
+            
         }
     }
     

@@ -12,6 +12,7 @@ using System.ComponentModel.Design;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -69,14 +70,15 @@ namespace ImgurWinform
         }
         private void CommentItem_Click(object sender, EventArgs e)
         {
-            CommentID.Text = ((CommentItem)sender).Tag.ToString();
             CommentID.Tag = (CommentItem)sender;
+            CommentID.Text = ((CommentItem)sender).Tag.ToString();            
         }
         private void VoteClick(object sender, EventArgs e)
         {
-            Label vote = (Label)sender;           
+            System.Windows.Forms.Label vote = (System.Windows.Forms.Label)sender;           
             Enum.TryParse(this.data.vote?.ToString(), out VoteType PreviousStage);
             Enum.TryParse(vote.Tag.ToString(), out VoteType NowStage);
+            
             VoteDTO VoteDTO = new VoteDTO(PreviousStage, NowStage, data.ups, data.id);
 
             var setvotepoint = voteService.SetVotePoint(VoteDTO);
